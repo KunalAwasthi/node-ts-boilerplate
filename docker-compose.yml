@@ -1,0 +1,39 @@
+
+version: '3.9'
+
+services:
+  # MongoDB service
+  mongo_db:
+    image: mongo:6.0.8
+    environment:
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+      - ./app-database/init.d:/docker-entrypoint-initdb.d # !!important, map the folder instead of the any actual file
+
+
+  # Node API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT}
+    ports:
+      # local->container
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    depends_on: 
+      - mongo_db
+    volumes:
+      - ./:/usr/local/apps/node-app/dev
+
+volumes:
+  mongo_data: {}
